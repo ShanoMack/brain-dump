@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Task, Tag } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, Circle, Trash2 } from "lucide-react";
+import { Circle, CircleCheck, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -69,9 +69,9 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
     >
       <button onClick={handleToggleComplete} className="flex-shrink-0">
         {task.completed ? (
-          <CheckCircle className="h-5 w-5 text-purple-600" />
+          <CircleCheck className="h-5 w-5 text-slate-600" />
         ) : (
-          <Circle className="h-5 w-5 text-gray-400" />
+          <Circle className="h-5 w-5 text-slate-400" />
         )}
         <span className="sr-only">
           Mark task as {task.completed ? "incomplete" : "complete"}
@@ -91,7 +91,7 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
         ) : (
           <div
             className={cn("break-words cursor-pointer", {
-              "line-through text-gray-500": task.completed,
+              "line-through text-slate-500": task.completed,
             })}
             onClick={() => setIsEditing(true)}
           >
@@ -145,8 +145,7 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
         </DropdownMenu>
 
         <Button
-          variant="ghost"
-          size="sm"
+          variant="outline"
           className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-500"
           onClick={() => onDeleteTask(task.id)}
         >

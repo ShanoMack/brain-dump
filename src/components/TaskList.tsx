@@ -1,9 +1,7 @@
-
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Task, Tag } from "@/types/task";
 import TaskItem from "./TaskItem";
-import { ArrowUp, ArrowDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GripVertical } from "lucide-react";
 
 interface TaskListProps {
   tasks: Task[];
@@ -20,35 +18,57 @@ const TaskList = ({
   onDeleteTask,
   onReorderTasks,
 }: TaskListProps) => {
-  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
-  const taskRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const handleMoveTask = (taskId: string, direction: "up" | "down") => {
-    const taskIndex = tasks.findIndex((t) => t.id === taskId);
+  const handleDragStart = (index: number) => {
+    setDragSourceIndex(index);
+  };
+
+  const handleDragOver = (index: number) => {
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = () => {
     if (
-      (direction === "up" && taskIndex === 0) ||
-      (direction === "down" && taskIndex === tasks.length - 1)
+      dragSourceIndex === null ||
+      dragOverIndex === null ||
+      dragSourceIndex === dragOverIndex
     ) {
+      resetDragState();
       return;
     }
 
-    const newIndex = direction === "up" ? taskIndex - 1 : taskIndex + 1;
     const newTasks = [...tasks];
-    const [movedTask] = newTasks.splice(taskIndex, 1);
-    newTasks.splice(newIndex, 0, movedTask);
+    const dragged = newTasks.splice(dragSourceIndex, 1)[0];
 
-    // Update order property
-    const reorderedTasks = newTasks.map((task, idx) => ({
-      ...task,
-      order: idx,
-    }));
+    // If dragging down, insert after dragOverIndex, else at dragOverIndex
+    let insertIndex = dragOverIndex;
+    if (dragSourceIndex < dragOverIndex) {
+      insertIndex = dragOverIndex + 1;
+    }
 
+    // Clamp insertIndex to array bounds
+    insertIndex = Math.min(insertIndex, newTasks.length);
+
+    newTasks.splice(insertIndex, 0, dragged);
+
+    // Update order props
+    const reorderedTasks = newTasks.map((task, idx) => ({ ...task, order: idx }));
     onReorderTasks(reorderedTasks);
+    resetDragState();
+  };
+
+  const resetDragState = () => {
+    setDragSourceIndex(null);
+    setDragOverIndex(null);
   };
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-left text-slate-500">
         No tasks yet. Add one above!
       </div>
     );
@@ -57,41 +77,69 @@ const TaskList = ({
   const sortedTasks = [...tasks].sort((a, b) => a.order - b.order);
 
   return (
-    <div className="space-y-2">
-      {sortedTasks.map((task) => (
-        <div key={task.id} className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => handleMoveTask(task.id, "up")}
-              disabled={task.order === 0}
+    <div className="relative">
+      {sortedTasks.map((task, index) => {
+        const isDragging = index === dragSourceIndex;
+        const isDragOver = index === dragOverIndex;
+
+        // Show divider above if dragging to an earlier position
+        const showDividerAbove = dragOverIndex !== null && dragSourceIndex !== null && dragOverIndex === index && dragOverIndex < dragSourceIndex;
+
+        // Show divider below if dragging to a later position
+        // Also handle dragging after last item
+        const showDividerBelow =
+          dragOverIndex !== null &&
+          dragSourceIndex !== null &&
+          ((dragOverIndex === index && dragOverIndex > dragSourceIndex) ||
+            (dragOverIndex === tasks.length && index === tasks.length - 1));
+
+        return (
+          <div key={task.id} className="relative">
+            {showDividerAbove && (
+              <div className="absolute top-0 left-0 right-0 h-1 bg-slate-500 rounded"></div>
+            )}
+
+            <div
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                handleDragOver(index);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                handleDrop();
+              }}
+              onDragEnd={handleDrop}
+              className={`flex items-center gap-2 p-2 rounded cursor-grab select-none bg-white ${
+                isDragging ? "opacity-50" : ""
+              }`}
             >
-              <ArrowUp className="h-4 w-4" />
-              <span className="sr-only">Move task up</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => handleMoveTask(task.id, "down")}
-              disabled={task.order === tasks.length - 1}
-            >
-              <ArrowDown className="h-4 w-4" />
-              <span className="sr-only">Move task down</span>
-            </Button>
+              <div className="cursor-grab" aria-label="Drag handle" tabIndex={0}>
+                <GripVertical className="h-5 w-5 text-slate-400" />
+              </div>
+
+              <div className="flex-1">
+                <TaskItem
+                  task={task}
+                  tags={tags}
+                  onUpdateTask={onUpdateTask}
+                  onDeleteTask={onDeleteTask}
+                />
+              </div>
+            </div>
+
+            {showDividerBelow && (
+              <div className="h-1 bg-slate-500 rounded my-1"></div>
+            )}
           </div>
-          <div className="flex-1">
-            <TaskItem
-              task={task}
-              tags={tags}
-              onUpdateTask={onUpdateTask}
-              onDeleteTask={onDeleteTask}
-            />
-          </div>
-        </div>
-      ))}
+        );
+      })}
+
+      {/* Handle dragging past the last item */}
+      {dragOverIndex === tasks.length && dragSourceIndex !== null && (
+        <div className="h-1 bg-slate-500 rounded my-1"></div>
+      )}
     </div>
   );
 };

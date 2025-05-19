@@ -27,9 +27,8 @@ const TaskInput = ({ onAddTask }: TaskInputProps) => {
         onChange={(e) => setText(e.target.value)}
         className="flex-1"
       />
-      <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+      <Button variant="outline" size="icon">
         <Plus className="h-5 w-5" />
-        <span className="sr-only">Add task</span>
       </Button>
     </form>
   );

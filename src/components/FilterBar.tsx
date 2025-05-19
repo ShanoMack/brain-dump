@@ -17,12 +17,12 @@ const FilterBar = ({ tags, activeTagId, onTagSelect }: FilterBarProps) => {
         className={cn(
           "cursor-pointer text-sm px-3 py-1 bg-opacity-80 hover:bg-opacity-100",
           activeTagId === null
-            ? "bg-purple-600 hover:bg-purple-700"
-            : "hover:bg-gray-100"
+            ? "bg-slate-600 hover:bg-slate-700"
+            : "hover:bg-slate-100"
         )}
         onClick={() => onTagSelect(null)}
       >
-        All Tasks
+        All tasks
       </Badge>
       
       {tags.map((tag) => (
@@ -31,7 +31,7 @@ const FilterBar = ({ tags, activeTagId, onTagSelect }: FilterBarProps) => {
           variant={activeTagId === tag.id ? "default" : "outline"}
           className={cn(
             "cursor-pointer text-sm px-3 py-1",
-            activeTagId === tag.id ? tag.color : "hover:bg-gray-100"
+            activeTagId === tag.id ? tag.color : "hover:bg-slate-100"
           )}
           onClick={() => onTagSelect(tag.id)}
         >

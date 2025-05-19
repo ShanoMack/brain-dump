@@ -27,7 +27,7 @@ const NoteSpace = ({ note, onNoteChange, tagName }: NoteSpaceProps) => {
         placeholder="Write your notes here..."
         value={content}
         onChange={handleChange}
-        className="min-h-[120px] w-full"
+        className="min-h-[100px] w-full"
       />
     </div>
   );
