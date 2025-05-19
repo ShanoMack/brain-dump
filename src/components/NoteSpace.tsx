@@ -21,13 +21,13 @@ const NoteSpace = ({ note, onNoteChange, tagName }: NoteSpaceProps) => {
   };
 
   return (
-    <div className="mt-8 border-t pt-6">
-      <h3 className="text-lg font-medium mb-3">Notes for {tagName}</h3>
+    <div className={tagName ? "mb-4" : ""}>
+      {tagName && <h3 className="text-lg font-medium mb-3">Notes for {tagName}</h3>}
       <Textarea
         placeholder="Write your notes here..."
         value={content}
         onChange={handleChange}
-        className="min-h-[120px]"
+        className="min-h-[120px] w-full"
       />
     </div>
   );

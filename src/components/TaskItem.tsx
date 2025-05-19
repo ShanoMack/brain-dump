@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Task, Tag } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, Circle, Pencil, Trash2 } from "lucide-react";
+import { CheckCircle, Circle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -90,9 +90,10 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
           />
         ) : (
           <div
-            className={cn("break-words", {
+            className={cn("break-words cursor-pointer", {
               "line-through text-gray-500": task.completed,
             })}
+            onClick={() => setIsEditing(true)}
           >
             {task.text}
           </div>
@@ -100,26 +101,25 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        {taskTag && (
-          <Badge
-            variant="outline"
-            className={cn("text-xs", taskTag.color)}
-          >
-            {taskTag.name}
-          </Badge>
-        )}
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <Pencil className="h-4 w-4" />
-              <span className="sr-only">Edit task or tag</span>
-            </Button>
+            {taskTag ? (
+              <Badge
+                variant="outline"
+                className={cn("text-xs cursor-pointer", taskTag.color)}
+              >
+                {taskTag.name}
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="text-xs cursor-pointer"
+              >
+                Add tag
+              </Badge>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setIsEditing(true)}>
-              Edit task
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleTagChange(null)}>
               Remove tag
             </DropdownMenuItem>
