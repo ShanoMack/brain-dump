@@ -13,23 +13,23 @@ import {
 import { cn } from "@/lib/utils";
 
 const TAG_COLORS = [
-  { value: "bg-red-200 text-red-800", label: "Red" },
-  { value: "bg-orange-200 text-orange-800", label: "Orange" },
-  { value: "bg-amber-200 text-amber-800", label: "Amber" },
-  { value: "bg-yellow-200 text-yellow-800", label: "Yellow" },
-  { value: "bg-lime-200 text-lime-800", label: "Lime" },
-  { value: "bg-green-200 text-green-800", label: "Green" },
-  { value: "bg-emerald-200 text-emerald-800", label: "Emerald" },
-  { value: "bg-teal-200 text-teal-800", label: "Teal" },
-  { value: "bg-cyan-200 text-cyan-800", label: "Cyan" },
-  { value: "bg-sky-200 text-sky-800", label: "Sky" },
-  { value: "bg-blue-200 text-blue-800", label: "Blue" },
-  { value: "bg-indigo-200 text-indigo-800", label: "Indigo" },
-  { value: "bg-violet-200 text-violet-800", label: "Violet" },
-  { value: "bg-purple-200 text-purple-800", label: "Purple" },
-  { value: "bg-fuchsia-200 text-fuchsia-800", label: "Fuchsia" },
-  { value: "bg-pink-200 text-pink-800", label: "Pink" },
-  { value: "bg-rose-200 text-rose-800", label: "Rose" },
+  { value: "bg-red-400 text-red-900", label: "Red" },
+  { value: "bg-orange-400 text-orange-900", label: "Orange" },
+  { value: "bg-amber-400 text-amber-900", label: "Amber" },
+  { value: "bg-yellow-400 text-yellow-900", label: "Yellow" },
+  { value: "bg-lime-400 text-lime-900", label: "Lime" },
+  { value: "bg-green-400 text-green-900", label: "Green" },
+  { value: "bg-emerald-400 text-emerald-900", label: "Emerald" },
+  { value: "bg-teal-400 text-teal-900", label: "Teal" },
+  { value: "bg-cyan-400 text-cyan-900", label: "Cyan" },
+  { value: "bg-sky-400 text-sky-900", label: "Sky" },
+  { value: "bg-blue-400 text-blue-900", label: "Blue" },
+  { value: "bg-indigo-400 text-indigo-900", label: "Indigo" },
+  { value: "bg-violet-400 text-violet-900", label: "Violet" },
+  { value: "bg-purple-400 text-purple-900", label: "Purple" },
+  { value: "bg-fuchsia-400 text-fuchsia-900", label: "Fuchsia" },
+  { value: "bg-pink-400 text-pink-900", label: "Pink" },
+  { value: "bg-rose-400 text-rose-900", label: "Rose" },
 ];
 
 export interface TagManagerHandle {
@@ -81,14 +81,52 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
   };
 
   return (
-    <div className="w-full max-w-md flex flex-col h-full">
+    <div className="w-full max-w-md">      
+      {/* Add new tag */}
+      <div className="flex-grow">
+        <p className="text-sm font-medium mb-1">Add a new tag</p>
+        <div className="flex gap-2"> 
+          <Input
+            placeholder="Enter tag name"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            className="w-40"
+            maxLength={20}
+          />
+          <Select value={newTagColor} onValueChange={setNewTagColor}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Color" />
+            </SelectTrigger>
+            <SelectContent>
+              {TAG_COLORS.map((color) => (
+                <SelectItem key={color.value} value={color.value}>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn("w-3 h-3 rounded-full", color.value.split(" ")[0])}
+                    ></span>
+                    {color.label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="icon" onClick={handleAddNewTag}>
+            <Plus/>
+          </Button>
+        </div>
+        <p className="text-sm text-slate-500 mt-1 text-left">
+          Enter a name and click the plus to add it to your tags
+        </p>
+        <div className="border-t mt-6"></div>        
+      </div>
+
       {/* Editable tags list */}
       <div className="flex-grow">        
         {localTags.length > 0 && (
           <p className="text-sm font-medium mt-6 mb-1">Your tags</p>
         )}
         {localTags.map((tag) => (
-          <div key={tag.id} className="flex gap-2">
+          <div key={tag.id} className="flex gap-2 mb-1">
             <Input
               className="w-40"
               value={tag.name}
@@ -124,40 +162,6 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
             </Button>
           </div>
         ))}
-      </div>
-
-      {/* Add new tag */}
-      <div className="flex-grow mt-6">
-        <p className="text-sm font-medium mb-1">Add a new tag</p>
-        <div className="flex gap-2"> 
-          <Input
-            placeholder="New tag name"
-            value={newTagName}
-            onChange={(e) => setNewTagName(e.target.value)}
-            className="w-40"
-            maxLength={20}
-          />
-          <Select value={newTagColor} onValueChange={setNewTagColor}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Color" />
-            </SelectTrigger>
-            <SelectContent>
-              {TAG_COLORS.map((color) => (
-                <SelectItem key={color.value} value={color.value}>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn("w-3 h-3 rounded-full", color.value.split(" ")[0])}
-                    ></span>
-                    {color.label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="icon" onClick={handleAddNewTag}>
-            <Plus/>
-          </Button>
-        </div>
       </div>
     </div>
   );

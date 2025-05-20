@@ -162,7 +162,7 @@ const Index = () => {
         </div>
 
         <Sheet open={showTagManager} onOpenChange={setShowTagManager}>
-          <SheetContent side="right" className="max-w-md w-full bg-white">
+          <SheetContent side="right" className="max-w-md w-full bg-white flex flex-col h-full gap-6">
             <SheetHeader>
               <SheetTitle>Manage Tags</SheetTitle>
               <SheetDescription>
@@ -170,19 +170,21 @@ const Index = () => {
               </SheetDescription>
             </SheetHeader>
             
-            <div>
+            <div className="flex-1 overflow-y-auto">
               <TagManager
                 ref={tagManagerRef}
                 tags={tags}
               />
             </div>
 
-            <SheetFooter className="justify-end gap-2 mt-8">
-              <Button onClick={handleTagManagerSave}>Apply</Button>
-              <SheetClose asChild>
-                <Button variant="outline">Close</Button>
-              </SheetClose>
-            </SheetFooter>
+            <div className="border-t">
+              <SheetFooter className="justify-end gap-2 mt-8">
+                <Button onClick={handleTagManagerSave}>Apply</Button>
+                <SheetClose asChild>
+                  <Button variant="outline">Close</Button>
+                </SheetClose>
+              </SheetFooter>
+            </div>
           </SheetContent>
         </Sheet>
 
@@ -193,7 +195,11 @@ const Index = () => {
           <ResizablePanel defaultSize={60} minSize={30}>
             <div className="p-6">
               <TaskInput onAddTask={handleTaskAdd} />
-              <h3 className="text-lg font-medium mb-3">All tasks</h3>
+              {activeTagId !== null ? (
+                <h3 className="text-lg font-medium mb-3">Tasks for</h3>
+              ) : (
+                <h3 className="text-lg font-medium mb-3">All tasks</h3>
+              )}
               <TaskList
                 tasks={filteredTasks}
                 onUpdateTask={handleTaskUpdate}
