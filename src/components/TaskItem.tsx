@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Task, Tag } from "@/types/task";
 import { Button } from "@/components/ui/button";
@@ -6,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Circle, CircleCheck, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface TaskItemProps {
   task: Task;
@@ -25,36 +24,27 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
   const [editedText, setEditedText] = useState(task.text);
 
   const handleEditSave = () => {
-    if (editedText.trim()) {
-      onUpdateTask({
-        ...task,
-        text: editedText.trim(),
-      });
+    const trimmed = editedText.trim();
+    if (trimmed) {
+      onUpdateTask({ ...task, text: trimmed });
       setIsEditing(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleEditSave();
-    } else if (e.key === "Escape") {
+    if (e.key === "Enter") handleEditSave();
+    else if (e.key === "Escape") {
       setEditedText(task.text);
       setIsEditing(false);
     }
   };
 
   const handleToggleComplete = () => {
-    onUpdateTask({
-      ...task,
-      completed: !task.completed,
-    });
+    onUpdateTask({ ...task, completed: !task.completed });
   };
 
   const handleTagChange = (tagId: string | null) => {
-    onUpdateTask({
-      ...task,
-      tagId,
-    });
+    onUpdateTask({ ...task, tagId });
   };
 
   const taskTag = tags.find((tag) => tag.id === task.tagId);
@@ -62,8 +52,8 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
   return (
     <div
       className={cn(
-        "flex items-center gap-2 p-2 rounded-md",
-        task.completed ? "bg-gray-50" : "bg-white"
+        "flex items-center gap-2 px-2",
+        task.completed ? "bg-slate-50" : "bg-white"
       )}
       data-task-id={task.id}
     >
@@ -85,7 +75,7 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
             onChange={(e) => setEditedText(e.target.value)}
             onBlur={handleEditSave}
             onKeyDown={handleKeyDown}
-            className="h-8 py-1"
+            className="h-[32px] py-1"
             autoFocus
           />
         ) : (
@@ -100,60 +90,43 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
         )}
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            {taskTag ? (
-              <Badge
-                variant="outline"
-                className={cn("text-xs cursor-pointer", taskTag.color)}
-              >
-                {taskTag.name}
-              </Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className="text-xs cursor-pointer"
-              >
-                Add tag
-              </Badge>
+      <div className="flex items-center gap-4 flex-shrink-0">
+        <Select
+          value={task.tagId ?? "__none__"}
+          onValueChange={(val) => handleTagChange(val === "__none__" ? null : val)}
+        >
+          <SelectTrigger
+            className={cn(
+              "w-auto h-[32px] px-4 text-sm rounded-full border [&>svg]:hidden",
+              taskTag?.color ?? "border-slate-300 text-slate-800 hover:bg-slate-200",
+              "bg-opacity-10 border-slate-300 text-opacity-70 hover:bg-opacity-30"
             )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleTagChange(null)}>
-              Remove tag
-            </DropdownMenuItem>
+          >
+            <SelectValue placeholder="Add tag" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="__none__">Untagged</SelectItem>
             {tags.map((tag) => (
-              <DropdownMenuItem
-                key={tag.id}
-                onClick={() => handleTagChange(tag.id)}
-                className={cn(
-                  "flex items-center",
-                  task.tagId === tag.id && "font-semibold"
-                )}
-              >
-                <span
-                  className={cn(
-                    "w-2 h-2 rounded-full mr-2",
-                    tag.color.split(" ")[0]
-                  )}
-                />
-                {tag.name}
-              </DropdownMenuItem>
+              <SelectItem key={tag.id} value={tag.id}>
+                <span className="inline-flex items-center gap-2">
+                  {tag.name}
+                </span>
+              </SelectItem>
             ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </SelectContent>
+        </Select>
 
         <Button
           variant="outline"
-          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-500"
+          size="icon"
+          className="hover:bg-red-50 hover:text-red-500"
           onClick={() => onDeleteTask(task.id)}
         >
           <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Delete task</span>
         </Button>
       </div>
-    </div>
+    </div>  
   );
 };
 

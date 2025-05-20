@@ -13,10 +13,10 @@ const FilterBar = ({ tags, activeTagId, onTagSelect }: FilterBarProps) => {
       {/* All Tasks Badge */}
       <div
         className={cn(
-          "cursor-pointer text-sm px-3 py-1 rounded-full border transition-colors",
+          "cursor-pointer text-sm font-medium px-3 py-1 rounded-full border transition-colors",
           activeTagId === null
-            ? "bg-slate-200 text-slate-800 border-slate-300"
-            : "border-slate-300 text-slate-800 hover:bg-slate-300"
+            ? "bg-slate-300 text-opacity-100 border-slate-500"
+            : "border-slate-300 text-slate-500 hover:bg-slate-200"
         )}
         onClick={() => onTagSelect(null)}
       >
@@ -31,11 +31,11 @@ const FilterBar = ({ tags, activeTagId, onTagSelect }: FilterBarProps) => {
           <div
             key={tag.id}
             className={cn(
-              "cursor-pointer text-sm px-3 py-1 rounded-full border transition-colors duration-200",
+              "cursor-pointer text-sm font-medium px-3 py-1 rounded-full border transition-colors duration-200",
               tag.color, // bg-red-500, etc.
               isActive
-                ? "bg-opacity-100 border-slate-500"
-                : "bg-opacity-30 border-slate-300 hover:bg-opacity-80"
+                ? "bg-opacity-60 border-slate-500 text-opacity-100"
+                : "bg-opacity-10 border-slate-300 text-opacity-70 hover:bg-opacity-50"
             )}
             onClick={() => onTagSelect(tag.id)}
           >

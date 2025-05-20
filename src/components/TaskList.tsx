@@ -96,7 +96,7 @@ const TaskList = ({
         return (
           <div key={task.id} className="relative">
             {showDividerAbove && (
-              <div className="absolute top-0 left-0 right-0 h-1 bg-slate-500 rounded"></div>
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-slate-400 rounded"></div>
             )}
 
             <div
@@ -130,7 +130,7 @@ const TaskList = ({
             </div>
 
             {showDividerBelow && (
-              <div className="h-1 bg-slate-500 rounded my-1"></div>
+              <div className="h-[2px] bg-slate-400 rounded my-1"></div>
             )}
           </div>
         );
@@ -138,7 +138,7 @@ const TaskList = ({
 
       {/* Handle dragging past the last item */}
       {dragOverIndex === tasks.length && dragSourceIndex !== null && (
-        <div className="h-1 bg-slate-500 rounded my-1"></div>
+        <div className="h-[2px] bg-slate-400 rounded my-1"></div>
       )}
     </div>
   );

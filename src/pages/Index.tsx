@@ -137,11 +137,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-6 py-4">
-        <h1 className="text-3xl font-bold text-slate-900 text-left">
+        <h1 className="text-3xl font-bold text-slate-900 text-left mb-1">
           BrainDump
         </h1>
-        <p className="text-sm text-slate-500 mb-3 text-left">
-          The ultralight to-do list that works.
+        <p className="text-md text-slate-500 mb-3 text-left">
+          The ultralight to-do list that just works.
         </p>
 
         <div className="flex items-center justify-between mb-3">
@@ -153,7 +153,7 @@ const Index = () => {
 
           <Button
             variant="outline"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-white"
             onClick={() => setShowTagManager(true)}
           >
             <Edit className="h-4 w-4" />
@@ -162,7 +162,7 @@ const Index = () => {
         </div>
 
         <Sheet open={showTagManager} onOpenChange={setShowTagManager}>
-          <SheetContent side="right" className="max-w-md w-full bg-white flex flex-col h-full gap-6">
+          <SheetContent side="right" className="max-w-lg bg-white flex flex-col h-full gap-6">
             <SheetHeader>
               <SheetTitle>Manage Tags</SheetTitle>
               <SheetDescription>
@@ -170,21 +170,18 @@ const Index = () => {
               </SheetDescription>
             </SheetHeader>
             
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto pl-1 border-t border-b py-4">
               <TagManager
                 ref={tagManagerRef}
                 tags={tags}
               />
             </div>
-
-            <div className="border-t">
-              <SheetFooter className="justify-end gap-2 mt-8">
-                <Button onClick={handleTagManagerSave}>Apply</Button>
-                <SheetClose asChild>
-                  <Button variant="outline">Close</Button>
-                </SheetClose>
-              </SheetFooter>
-            </div>
+            <SheetFooter className="justify-end gap-2 mt-2">
+              <Button onClick={handleTagManagerSave}>Apply</Button>
+              <SheetClose asChild>
+                <Button variant="outline">Close</Button>
+              </SheetClose>
+            </SheetFooter>
           </SheetContent>
         </Sheet>
 
@@ -196,9 +193,9 @@ const Index = () => {
             <div className="p-6">
               <TaskInput onAddTask={handleTaskAdd} />
               {activeTagId !== null ? (
-                <h3 className="text-lg font-medium mb-3">Tasks for</h3>
+                <h3 className="text-lg font-medium mb-2">Tasks for {getActiveTagName()}</h3>
               ) : (
-                <h3 className="text-lg font-medium mb-3">All tasks</h3>
+                <h3 className="text-lg font-medium mb-2">All tasks</h3>
               )}
               <TaskList
                 tasks={filteredTasks}
@@ -226,25 +223,13 @@ const Index = () => {
                 <div className="space-y-6">
                   <h3 className="text-lg font-medium">All notes</h3>
 
-                  {/* Default Notes Section */}
-                  <div className="rounded-lg">
-                    <h3 className="font-medium mb-2 inline-block px-2 py-1 rounded-md text-sm bg-slate-200 text-slate-800">
-                      General
-                    </h3>
-                    <NoteSpace
-                      note={notes["default"] || ""}
-                      onNoteChange={(content) => handleNoteChange("default", content)}
-                      tagName=""
-                    />
-                  </div>
-
                   {/* Tagged Notes Section */}
                   {tags.map((tag) => (
                     <div key={tag.id} className="rounded-lg">
                       <h3
                         className={cn(
                           "font-medium mb-2 inline-block px-2 py-1 rounded-md text-sm",
-                          tag.color
+                          tag.color, "bg-opacity-20 text-opacity-80" 
                         )}
                       >
                         {tag.name}
@@ -260,8 +245,11 @@ const Index = () => {
               )}
             </div>
           </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
+        </ResizablePanelGroup>    
+      <p className="text-xs text-slate-400 mt-3 text-center">
+        BrainDump v0.1a - Shane Turner © 2025
+      </p>
+      </div>  
     </div>
   );
 };

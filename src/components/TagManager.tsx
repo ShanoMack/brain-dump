@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import { Tag } from "@/types/task";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, GripVertical, HelpCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -11,6 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 const TAG_COLORS = [
   { value: "bg-red-400 text-red-900", label: "Red" },
@@ -32,13 +38,13 @@ const TAG_COLORS = [
   { value: "bg-rose-400 text-rose-900", label: "Rose" },
 ];
 
-export interface TagManagerHandle {
-  getTags: () => Tag[];
-}
-
 interface TagManagerProps {
   tags: Tag[];
   onSave: (tags: Tag[]) => void;
+}
+
+export interface TagManagerHandle {
+  getTags: () => Tag[];
 }
 
 const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) => {
@@ -46,9 +52,64 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0].value);
 
+  const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
   useImperativeHandle(ref, () => ({
-    getTags: () => localTags,
+    getTags: () => {
+      const trimmedName = newTagName.trim();
+      if (trimmedName) {
+        const tagId = trimmedName.toLowerCase().replace(/\s+/g, "-");
+        const pendingTag: Tag = {
+          id: `${tagId}-${Date.now()}`,
+          name: trimmedName,
+          color: newTagColor,
+        };
+        return [...localTags, pendingTag];
+      }
+      return localTags;
+    },
   }));
+
+  const reorderTags = () => {
+    if (
+      dragSourceIndex === null ||
+      dragOverIndex === null ||
+      dragSourceIndex === dragOverIndex
+    ) {
+      resetDragState();
+      return;
+    }
+
+    const newTags = [...localTags];
+    const [movedTag] = newTags.splice(dragSourceIndex, 1);
+
+    // Insert at correct position
+    const insertIndex = dragSourceIndex < dragOverIndex ? dragOverIndex : dragOverIndex;
+    newTags.splice(insertIndex, 0, movedTag);
+
+    setLocalTags(newTags);
+    resetDragState();
+  };
+
+  const resetDragState = () => {
+    setDragSourceIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleAddNewTag = () => {
+    if (newTagName.trim()) {
+      const tagId = newTagName.toLowerCase().replace(/\s+/g, "-");
+      const newTag: Tag = {
+        id: `${tagId}-${Date.now()}`,
+        name: newTagName.trim(),
+        color: newTagColor,
+      };
+      setLocalTags((prev) => [...prev, newTag]);
+      setNewTagName("");
+      setNewTagColor(TAG_COLORS[0].value);
+    }
+  };
 
   const handleChangeTagName = (id: string, name: string) => {
     setLocalTags((prev) =>
@@ -66,25 +127,23 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
     setLocalTags((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const handleAddNewTag = () => {
-    if (newTagName.trim()) {
-      const tagId = newTagName.toLowerCase().replace(/\s+/g, "-");
-      const newTag: Tag = {
-        id: `${tagId}-${Date.now()}`,
-        name: newTagName.trim(),
-        color: newTagColor,
-      };
-      setLocalTags((prev) => [...prev, newTag]);
-      setNewTagName("");
-      setNewTagColor(TAG_COLORS[0].value);
-    }
-  };
-
   return (
     <div className="w-full max-w-md">      
       {/* Add new tag */}
       <div className="flex-grow">
-        <p className="text-sm font-medium mb-1">Add a new tag</p>
+        <TooltipProvider>
+        <div className="flex items-center gap-1 text-sm font-medium mb-1">
+          Add a new tag
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="w-4 h-4 text-slate-400 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs text-sm">
+            Type in a name and click the plus to add it to your tags
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
         <div className="flex gap-2"> 
           <Input
             placeholder="Enter tag name"
@@ -114,24 +173,41 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
             <Plus/>
           </Button>
         </div>
-        <p className="text-sm text-slate-500 mt-1 text-left">
-          Enter a name and click the plus to add it to your tags
-        </p>
         <div className="border-t mt-6"></div>        
       </div>
 
-      {/* Editable tags list */}
-      <div className="flex-grow">        
+      {/* Editable + reorderable tag list */}
+      <div className="flex-grow">
         {localTags.length > 0 && (
           <p className="text-sm font-medium mt-6 mb-1">Your tags</p>
         )}
-        {localTags.map((tag) => (
-          <div key={tag.id} className="flex gap-2 mb-1">
+        {localTags.map((tag, index) => (
+          <div
+            key={tag.id}
+            draggable
+            onDragStart={() => setDragSourceIndex(index)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (dragOverIndex !== index) setDragOverIndex(index);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              reorderTags();
+            }}
+            onDragEnd={reorderTags}
+            className={cn(
+              "flex gap-2 mb-1 items-center rounded p-1",
+              dragSourceIndex === index ? "opacity-50" : ""
+            )}
+          >
+            <GripVertical className="text-slate-400 cursor-grab" />
+
             <Input
               className="w-40"
               value={tag.name}
               onChange={(e) => handleChangeTagName(tag.id, e.target.value)}
             />
+
             <Select
               value={tag.color}
               onValueChange={(color) => handleChangeTagColor(tag.id, color)}
@@ -152,8 +228,10 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
                 ))}
               </SelectContent>
             </Select>
+
             <Button
-              variant="outline" size="icon"
+              variant="outline"
+              size="icon"
               className="hover:bg-red-100 hover:text-red-600"
               onClick={() => handleDeleteLocalTag(tag.id)}
             >
