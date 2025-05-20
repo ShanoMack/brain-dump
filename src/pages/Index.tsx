@@ -140,7 +140,7 @@ const Index = () => {
         <h1 className="text-3xl font-bold text-slate-900 text-left">
           BrainDump
         </h1>
-        <p className="text-sm text-slate-500 mb-2 text-left">
+        <p className="text-sm text-slate-500 mb-3 text-left">
           The ultralight to-do list that works.
         </p>
 
@@ -170,14 +170,14 @@ const Index = () => {
               </SheetDescription>
             </SheetHeader>
             
-            <div className="py-4">
+            <div>
               <TagManager
                 ref={tagManagerRef}
                 tags={tags}
               />
             </div>
 
-            <SheetFooter className="justify-end gap-2">
+            <SheetFooter className="justify-end gap-2 mt-8">
               <Button onClick={handleTagManagerSave}>Apply</Button>
               <SheetClose asChild>
                 <Button variant="outline">Close</Button>

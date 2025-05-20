@@ -83,9 +83,12 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
   return (
     <div className="w-full max-w-md flex flex-col h-full">
       {/* Editable tags list */}
-      <div className="flex-grow overflow-auto space-y-4 mb-6">
+      <div className="flex-grow">        
+        {localTags.length > 0 && (
+          <p className="text-sm font-medium mt-6 mb-1">Your tags</p>
+        )}
         {localTags.map((tag) => (
-          <div key={tag.id} className="flex items-center gap-4">
+          <div key={tag.id} className="flex gap-2">
             <Input
               className="w-40"
               value={tag.name}
@@ -113,7 +116,7 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
             </Select>
             <Button
               variant="outline" size="icon"
-              className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
+              className="hover:bg-red-100 hover:text-red-600"
               onClick={() => handleDeleteLocalTag(tag.id)}
             >
               <Trash2 className="h-4 w-4" />
@@ -124,34 +127,37 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
       </div>
 
       {/* Add new tag */}
-      <div className="flex gap-2 mb-6">
-        <Input
-          placeholder="New tag name"
-          value={newTagName}
-          onChange={(e) => setNewTagName(e.target.value)}
-          className="w-40"
-          maxLength={20}
-        />
-        <Select value={newTagColor} onValueChange={setNewTagColor}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Color" />
-          </SelectTrigger>
-          <SelectContent>
-            {TAG_COLORS.map((color) => (
-              <SelectItem key={color.value} value={color.value}>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn("w-3 h-3 rounded-full", color.value.split(" ")[0])}
-                  ></span>
-                  {color.label}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button variant="outline" size="icon" onClick={handleAddNewTag}>
-          <Plus/>
-        </Button>
+      <div className="flex-grow mt-6">
+        <p className="text-sm font-medium mb-1">Add a new tag</p>
+        <div className="flex gap-2"> 
+          <Input
+            placeholder="New tag name"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            className="w-40"
+            maxLength={20}
+          />
+          <Select value={newTagColor} onValueChange={setNewTagColor}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Color" />
+            </SelectTrigger>
+            <SelectContent>
+              {TAG_COLORS.map((color) => (
+                <SelectItem key={color.value} value={color.value}>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn("w-3 h-3 rounded-full", color.value.split(" ")[0])}
+                    ></span>
+                    {color.label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="icon" onClick={handleAddNewTag}>
+            <Plus/>
+          </Button>
+        </div>
       </div>
     </div>
   );
