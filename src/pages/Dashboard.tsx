@@ -23,8 +23,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import DashboardHeader from "@/components/DashboardHeader";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-const Index = () => {
+const Dashboard = () => {
   const tagManagerRef = useRef<TagManagerHandle>(null);
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -135,36 +138,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <h1 className="text-3xl font-bold text-slate-900 text-left mb-1">
-          BrainDump
-        </h1>
-        <p className="text-md text-slate-500 mb-3 text-left">
-          The ultralight to-do list that just works.
-        </p>
-
-        <div className="flex items-center justify-between mb-3">
-          <FilterBar
-            tags={tags}
-            activeTagId={activeTagId}
-            onTagSelect={setActiveTagId}
-          />
-
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 bg-white"
-            onClick={() => setShowTagManager(true)}
-          >
-            <Edit className="h-4 w-4" />
-            Manage Tags
-          </Button>
-        </div>
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <div className="flex-1 max-w-7xl mx-auto px-6 py-4 w-full">
+        <DashboardHeader
+          tags={tags}
+          activeTagId={activeTagId}
+          onTagSelect={setActiveTagId}
+          setShowTagManager={setShowTagManager}
+        />
 
         <Sheet open={showTagManager} onOpenChange={setShowTagManager}>
           <SheetContent side="right" className="max-w-lg bg-white flex flex-col h-full gap-6">
             <SheetHeader>
-              <SheetTitle>Manage Tags</SheetTitle>
+              <SheetTitle>Manage tags</SheetTitle>
               <SheetDescription>
                 Make changes to your tags here. Click apply when you're done.
               </SheetDescription>
@@ -187,7 +173,7 @@ const Index = () => {
 
         <ResizablePanelGroup
           direction="horizontal"
-          className="min-h-[500px] border rounded-lg bg-white"
+          className="min-h-[500px] border rounded-lg bg-white mt-[72px]"
         >
           <ResizablePanel defaultSize={60} minSize={30}>
             <div className="p-6">
@@ -245,13 +231,13 @@ const Index = () => {
               )}
             </div>
           </ResizablePanel>
-        </ResizablePanelGroup>    
-      <p className="text-xs text-slate-400 mt-3 text-center">
+        </ResizablePanelGroup>
+      </div>
+      <footer className="text-xs text-slate-400 text-center py-4">
         BrainDump v0.1a - Shane Turner © 2025
-      </p>
-      </div>  
+      </footer>
     </div>
   );
 };
 
-export default Index;
+export default Dashboard;
