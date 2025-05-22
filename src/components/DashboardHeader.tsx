@@ -33,7 +33,7 @@ const DashboardHeader = ({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[64px] bg-white border-b flex flex-col justify-center py-1 px-6 z-50 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 h-[64px] bg-white border-b border-pink-200 flex flex-col justify-center py-1 px-6 z-50 shadow-sm">
       <div className="flex items-center justify-between mt-2 mb-2">
         {/* Left side: Logo + FilterBar */}
         <div className="flex items-center gap-4">

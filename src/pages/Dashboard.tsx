@@ -6,7 +6,7 @@ import NoteSpace from "@/components/NoteSpace";
 import TagManager, { TagManagerHandle } from "@/components/TagManager";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { Edit, HelpCircle } from "lucide-react";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -26,6 +26,7 @@ import DashboardHeader from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Database } from "@/integrations/supabase/types";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 type Tag = Database["public"]["Tables"]["tags"]["Row"];
 
@@ -289,9 +290,10 @@ const Dashboard = () => {
   // #endregion
   //================================================================================
 
+  // #region Page
   //================================================================================
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-pink-50">
       <div className="flex-1 max-w-7xl mx-auto px-6 py-4 w-full">
         <DashboardHeader
           tags={tags}
@@ -329,13 +331,23 @@ const Dashboard = () => {
           className="min-h-[500px] border rounded-lg bg-white mt-[72px]"
         >
           <ResizablePanel defaultSize={60} minSize={30}>
-            <div className="p-6">
+            <div className="p-6">              
+              <div className="flex items-center gap-1 text-lg font-medium">
+                {activeTagId !== null ? (
+                  <h3 className="mb-1">Tasks for {getActiveTagName()}</h3>
+                  ) : (
+                    <h3 className="mb-1">All tasks</h3>
+                  )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-4 h-4 text-slate-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs text-sm">
+                    Type in a task name and press enter or click the plus to add it to your list
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <TaskInput onAddTask={handleTaskAdd} />
-              {activeTagId !== null ? (
-                <h3 className="text-lg font-medium mb-2">Tasks for {getActiveTagName()}</h3>
-              ) : (
-                <h3 className="text-lg font-medium mb-2">All tasks</h3>
-              )}
               <TaskList
                 tasks={filteredTasks}
                 onUpdateTask={handleTaskUpdate}
@@ -386,11 +398,12 @@ const Dashboard = () => {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
-      <footer className="text-xs text-slate-400 text-center py-4">
+      <footer className="text-xs text-pink-400 text-center py-4">
         BrainDump v0.1a - Shane Turner © 2025
       </footer>
     </div>
   );
+  // #endregion
 };
 
 export default Dashboard;

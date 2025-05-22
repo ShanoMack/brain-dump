@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+/* Add this at the root level */
+:root {
+  --font-nunito: 'Nunito', sans-serif;
+}
+
+.nunito-title {
+  font-family: var(--font-nunito);
+}

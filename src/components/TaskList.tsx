@@ -84,26 +84,21 @@ const TaskList = ({
         const isDragging = index === dragSourceIndex;
         const isDragOver = index === dragOverIndex;
 
-        // Show divider above if dragging to an earlier position
-        const showDividerAbove = dragOverIndex !== null && dragSourceIndex !== null && dragOverIndex === index && dragOverIndex < dragSourceIndex;
+        const showDividerAbove = dragOverIndex !== null && dragSourceIndex !== null && 
+          dragOverIndex === index && dragOverIndex < dragSourceIndex;
 
-        // Show divider below if dragging to a later position
-        // Also handle dragging after last item
-        const showDividerBelow =
-          dragOverIndex !== null &&
-          dragSourceIndex !== null &&
+        const showDividerBelow = dragOverIndex !== null && dragSourceIndex !== null &&
           ((dragOverIndex === index && dragOverIndex > dragSourceIndex) ||
             (dragOverIndex === tasks.length && index === tasks.length - 1));
 
         return (
-          <div key={task.id} className="relative">
+          <div key={task.id} className="relative border-t border-slate-100">
             {showDividerAbove && (
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-slate-400 rounded"></div>
             )}
 
+            {/* Main container only needs dragOver and drop handlers */}
             <div
-              draggable
-              onDragStart={() => handleDragStart(index)}
               onDragOver={(e) => {
                 e.preventDefault();
                 handleDragOver(index);
@@ -112,16 +107,22 @@ const TaskList = ({
                 e.preventDefault();
                 handleDrop();
               }}
-              onDragEnd={handleDrop}
-              className={`flex items-center gap-2 pl-2 py-2 rounded cursor-grab select-none bg-white ${
-                isDragging ? "opacity-50" : ""
-              }`}
+              className="flex items-center gap-2 pl-2 py-2 rounded bg-white"
             >
-              <div className="cursor-grab" aria-label="Drag handle" tabIndex={0}>
+              {/* Drag handle gets the drag start and end events */}
+              <div 
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnd={handleDrop}
+                className="cursor-grab" 
+                aria-label="Drag handle" 
+                tabIndex={0}
+              >
                 <GripVertical className="h-5 w-5 text-slate-400" />
               </div>
 
-              <div className="flex-1">
+              {/* Content container with opacity feedback */}
+              <div className={`flex-1 ${isDragging ? "opacity-50" : ""}`}>
                 <TaskItem
                   task={task}
                   tags={tags}

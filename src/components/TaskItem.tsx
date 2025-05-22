@@ -52,7 +52,7 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
   const taskTag = tags.find((tag) => tag.id === task.tag_id);
 
   return (
-    <div
+    <div 
       className={cn(
         "flex items-center gap-3",
         task.completed ? "bg-slate-50" : "bg-white"

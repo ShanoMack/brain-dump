@@ -175,69 +175,115 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
       </div>
 
       {/* Editable + reorderable tag list */}
-      <div className="flex-grow">
+      <div className="flex-grow relative">
         {localTags.length > 0 && (
           <p className="text-sm font-medium mt-6 mb-1">Your tags</p>
         )}
-        {localTags.map((tag, index) => (
-          <div
-            key={tag.id}
-            draggable
-            onDragStart={() => setDragSourceIndex(index)}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (dragOverIndex !== index) setDragOverIndex(index);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              reorderTags();
-            }}
-            onDragEnd={reorderTags}
-            className={cn(
-              "flex gap-2 mb-1 items-center rounded p-1",
-              dragSourceIndex === index ? "opacity-50" : ""
-            )}
-          >
-            <GripVertical className="text-slate-400 cursor-grab" />
+        {localTags.map((tag, index) => {
+          const isDragging = index === dragSourceIndex;
+          const isDragOver = index === dragOverIndex;
 
-            <Input
-              className="w-40"
-              value={tag.name}
-              onChange={(e) => handleChangeTagName(tag.id, e.target.value)}
-            />
+          // Show divider above if dragging to an earlier position
+          const showDividerAbove = 
+            dragOverIndex !== null && 
+            dragSourceIndex !== null && 
+            dragOverIndex === index && 
+            dragOverIndex < dragSourceIndex;
 
-            <Select
-              value={tag.color}
-              onValueChange={(color) => handleChangeTagColor(tag.id, color)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TAG_COLORS.map((color) => (
-                  <SelectItem key={color.value} value={color.value}>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={cn("w-3 h-3 rounded-full", color.value.split(" ")[0])}
-                      ></span>
-                      {color.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          // Show divider below if dragging to a later position
+          const showDividerBelow =
+            dragOverIndex !== null &&
+            dragSourceIndex !== null &&
+            ((dragOverIndex === index && dragOverIndex > dragSourceIndex) ||
+              (dragOverIndex === localTags.length && index === localTags.length - 1));
 
-            <Button
-              variant="outline"
-              size="icon"
-              className="hover:bg-red-100 hover:text-red-600"
-              onClick={() => handleDeleteLocalTag(tag.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Delete tag</span>
-            </Button>
-          </div>
-        ))}
+          return (
+            <div key={tag.id || index} className="relative">
+              {showDividerAbove && (
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-slate-400 rounded"></div>
+              )}
+
+              {/* Main container needs dragOver and drop handlers */}
+              <div 
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragOverIndex !== index) {
+                    setDragOverIndex(index);
+                  }
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  reorderTags();
+                }}
+                className="flex gap-2 mb-1 items-center rounded p-1"
+              >
+                {/* Drag handle only needs dragStart and dragEnd */}
+                <div
+                  draggable
+                  onDragStart={() => setDragSourceIndex(index)}
+                  onDragEnd={reorderTags}
+                  className="cursor-grab"
+                >
+                  <GripVertical className="h-5 w-5 text-slate-400" />
+                </div>
+
+                {/* Content container remains the same */}
+                <div 
+                  className={cn(
+                    "flex flex-1 gap-2 items-center",
+                    dragSourceIndex === index ? "opacity-50" : ""
+                  )}
+                >
+                  <Input
+                    className="w-40"
+                    value={tag.name}
+                    onChange={(e) => handleChangeTagName(tag.id, e.target.value)}
+                  />
+
+                  <Select
+                    value={tag.color}
+                    onValueChange={(color) => handleChangeTagColor(tag.id, color)}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TAG_COLORS.map((color) => (
+                        <SelectItem key={color.value} value={color.value}>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn("w-3 h-3 rounded-full", color.value.split(" ")[0])}
+                            ></span>
+                            {color.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="hover:bg-red-100 hover:text-red-600"
+                    onClick={() => handleDeleteLocalTag(tag.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete tag</span>
+                  </Button>
+                </div>
+              </div>
+
+              {showDividerBelow && (
+                <div className="h-[2px] bg-slate-400 rounded my-1"></div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Handle dragging past the last item */}
+        {dragOverIndex === localTags.length && dragSourceIndex !== null && (
+          <div className="h-[2px] bg-slate-400 rounded my-1"></div>
+        )}
       </div>
     </div>
   );
