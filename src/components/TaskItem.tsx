@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Task, Tag } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Circle, CircleCheck, Trash2 } from "lucide-react";
@@ -11,6 +10,9 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { Database } from "@/integrations/supabase/types";
+type Task = Database["public"]["Tables"]["tasks"]["Row"];
+type Tag = Database["public"]["Tables"]["tags"]["Row"];
 
 interface TaskItemProps {
   task: Task;
@@ -43,16 +45,16 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
     onUpdateTask({ ...task, completed: !task.completed });
   };
 
-  const handleTagChange = (tagId: string | null) => {
-    onUpdateTask({ ...task, tagId });
+  const handleTagChange = (tag_id: string | null) => {
+    onUpdateTask({ ...task, tag_id });
   };
 
-  const taskTag = tags.find((tag) => tag.id === task.tagId);
+  const taskTag = tags.find((tag) => tag.id === task.tag_id);
 
   return (
     <div
       className={cn(
-        "flex items-center gap-2 px-2",
+        "flex items-center gap-3",
         task.completed ? "bg-slate-50" : "bg-white"
       )}
       data-task-id={task.id}
@@ -90,9 +92,9 @@ const TaskItem = ({ task, tags, onUpdateTask, onDeleteTask }: TaskItemProps) => 
         )}
       </div>
 
-      <div className="flex items-center gap-4 flex-shrink-0">
+      <div className="flex items-center gap-3 flex-shrink-0">
         <Select
-          value={task.tagId ?? "__none__"}
+          value={task.tag_id ?? "__none__"}
           onValueChange={(val) => handleTagChange(val === "__none__" ? null : val)}
         >
           <SelectTrigger

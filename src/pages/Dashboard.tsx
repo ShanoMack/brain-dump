@@ -149,18 +149,42 @@ const Dashboard = () => {
 
   const saveTagsToSupabase = async (tagsToSave: Tag[]) => {
     if (!user) return;
-    const tagsArr = tagsToSave.map(tag => {
-      if (tag.id && tag.id.startsWith("temp-")) {
-        const { id, ...rest } = tag;
-        return { ...rest, user_id: user.id };
+    
+    // Log incoming tags for debugging
+    console.log("Tags to save:", tagsToSave);
+    
+    const tagsToUpsert = tagsToSave.map(tag => {
+      // If it's a new tag (no id), only include required fields
+      if (!tag.id) {
+        return {
+          name: tag.name,
+          color: tag.color,
+          user_id: user.id,
+        };
       }
-      return { ...tag, user_id: user.id };
+      
+      // For existing tags, include all fields
+      return {
+        ...tag,
+        user_id: user.id,
+      };
     });
-    const { error } = await supabase
+
+    console.log("Upserting tags:", tagsToUpsert);
+
+    const { data, error } = await supabase
       .from("tags")
-      .upsert(tagsArr, { onConflict: "id" });
+      .upsert(tagsToUpsert)
+      .select();
+
     if (error) {
       console.error("Error saving tags:", error);
+      return;
+    }
+
+    if (data) {
+      console.log("Received tags after upsert:", data);
+      setTags(data);
     }
   };  
 
@@ -231,31 +255,36 @@ const Dashboard = () => {
     fetchNotes();
   }, [user]);
 
-  const saveNotesToSupabase = async (notesToSave: NoteMap) => {
+  const saveNotesToSupabase = async (tag_id: string, content: string) => {
     if (!user) return;
-    const notesArr = Object.entries(notesToSave).map(([tag_id, note]) => ({
-      id: note.id,
+    const prevNote = notes[tag_id];
+
+    // Create note object based on whether it's new or existing
+    const noteData: Database["public"]["Tables"]["notes"]["Row"] = {
+      id: prevNote?.id ?? crypto.randomUUID(),
       tag_id,
-      content: note.content,
+      content,
       user_id: user.id,
-    }));
+    };
+
     const { error } = await supabase
       .from("notes")
-      .upsert(notesArr, { onConflict: "id" });
+      .upsert(noteData);
+      
     if (error) {
-      console.error("Error saving notes:", error);
+      console.error("Error saving note:", error);
     }
   };
 
-  const handleNoteChange = async (tagId: string | null, content: string) => {
-    if (tagId === null) return;
-    const prevNote = notes[tagId];
+  const handleNoteChange = async (tag_id: string | null, content: string) => {
+    if (tag_id === null) return;
+    const prevNote = notes[tag_id];
     const updatedNotes = {
       ...notes,
-      [tagId]: { id: prevNote?.id, content },
+      [tag_id]: { id: prevNote?.id, content },
     };
     setNotes(updatedNotes);
-    await saveNotesToSupabase(updatedNotes);
+    await saveNotesToSupabase(tag_id, content);
   };
   // #endregion
   //================================================================================

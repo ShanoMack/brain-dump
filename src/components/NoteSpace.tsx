@@ -1,6 +1,7 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import debounce from "lodash.debounce";
 
 interface NoteSpaceProps {
   note: string;
@@ -15,9 +16,21 @@ const NoteSpace = ({ note, onNoteChange, tagName }: NoteSpaceProps) => {
     setContent(note);
   }, [note]);
 
+  // Debounce the onNoteChange callback
+  const debouncedOnNoteChange = useMemo(
+    () => debounce(onNoteChange, 3000), // 800ms after user stops typing
+    [onNoteChange]
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedOnNoteChange.cancel();
+    };
+  }, [debouncedOnNoteChange]);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
-    onNoteChange(e.target.value);
+    debouncedOnNoteChange(e.target.value);
   };
 
   return (

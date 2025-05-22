@@ -113,7 +113,7 @@ const TaskList = ({
                 handleDrop();
               }}
               onDragEnd={handleDrop}
-              className={`flex items-center gap-2 p-2 rounded cursor-grab select-none bg-white ${
+              className={`flex items-center gap-2 pl-2 py-2 rounded cursor-grab select-none bg-white ${
                 isDragging ? "opacity-50" : ""
               }`}
             >

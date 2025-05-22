@@ -50,7 +50,12 @@ export interface TagManagerHandle {
 
 const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) => {
 
-  type LocalTag = Partial<Pick<Tag, "id" | "user_id">> & Pick<Tag, "name" | "color">;
+  type LocalTag = {
+    id?: string;
+    name: string;
+    color: string;
+    user_id?: string;
+  };
   const [localTags, setLocalTags] = useState<LocalTag[]>(props.tags);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0].value);
@@ -63,14 +68,7 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
   }, [props.tags]);
 
   useImperativeHandle(ref, () => ({
-    getTags: () =>
-      localTags.filter(
-        (t): t is Tag =>
-          typeof t.id === "string" &&
-          typeof t.user_id === "string" &&
-          typeof t.name === "string" &&
-          typeof t.color === "string"
-      ),
+    getTags: () => localTags as Tag[]
   }));
 
   const reorderTags = () => {
@@ -102,10 +100,9 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
   const handleAddNewTag = () => {
     if (newTagName.trim()) {
       const newTag: LocalTag = {
-        id: `temp-${Date.now()}-${Math.random()}`,
         name: newTagName.trim(),
         color: newTagColor,
-      } as Omit<Tag, "id" | "user_id">; 
+      };
       setLocalTags((prev) => [...prev, newTag]);
       setNewTagName("");
       setNewTagColor(TAG_COLORS[0].value);
