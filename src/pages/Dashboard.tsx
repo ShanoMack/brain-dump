@@ -4,7 +4,6 @@ import TaskList from "@/components/TaskList";
 import FilterBar from "@/components/FilterBar";
 import NoteSpace from "@/components/NoteSpace";
 import TagManager, { TagManagerHandle } from "@/components/TagManager";
-import { Task, Tag } from "@/types/task";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
@@ -26,99 +25,157 @@ import {
 import DashboardHeader from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Database } from "@/integrations/supabase/types";
+type Task = Database["public"]["Tables"]["tasks"]["Row"];
+type Tag = Database["public"]["Tables"]["tags"]["Row"];
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const tagManagerRef = useRef<TagManagerHandle>(null);
 
+  //===================================TASKS========================================
+  // #region Tasks
+  //================================================================================
+
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [activeTagId, setActiveTagId] = useState<string | null>(null);
-  const [notes, setNotes] = useState<Record<string, string>>({});
-  const [showTagManager, setShowTagManager] = useState(false);
-
-  useEffect(() => {
-    const savedTasks = localStorage.getItem("tasks");
-    const savedTags = localStorage.getItem("tags");
-    const savedNotes = localStorage.getItem("notes");
-
-    if (savedTasks) setTasks(JSON.parse(savedTasks));
-    if (savedTags) setTags(JSON.parse(savedTags));
-    if (savedNotes) setNotes(JSON.parse(savedNotes));
-
-    if (!savedTags) {
-      const defaultTags = [
-        { id: "work", name: "Work", color: "bg-blue-200 text-blue-800" },
-        { id: "personal", name: "Personal", color: "bg-purple-200 text-purple-800" },
-        { id: "urgent", name: "Urgent", color: "bg-red-200 text-red-800" },
-      ];
-      setTags(defaultTags);
-      localStorage.setItem("tags", JSON.stringify(defaultTags));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
-
-  useEffect(() => {
-    localStorage.setItem("tags", JSON.stringify(tags));
-  }, [tags]);
-
-  useEffect(() => {
-    localStorage.setItem("notes", JSON.stringify(notes));
-  }, [notes]);
-
-  const filteredTasks = activeTagId
-    ? tasks.filter((task) => task.tagId === activeTagId)
-    : tasks;
-
-  const handleTaskAdd = (text: string) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      text,
-      completed: false,
-      tagId: activeTagId || null,
-      order: tasks.length,
-    };
-    setTasks([...tasks, newTask]);
-  };
-
-  const handleTaskUpdate = (updatedTask: Task) => {
-    setTasks(tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)));
-  };
-
-  const handleTaskDelete = (taskId: string) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
-  };
-
-  const handleTaskReorder = (reorderedTasks: Task[]) => {
-    setTasks(reorderedTasks);
-  };
-
-  const handleNoteChange = (tagId: string | null, content: string) => {
-    if (tagId === null) return;
-    setNotes({
-      ...notes,
-      [tagId]: content,
-    });
-  };
+  const [activeTagId, setActiveTagId] = useState<string | null>(null);  
 
   const getActiveTagName = () => {
     if (activeTagId === null) return "All tasks";
     return tags.find((tag) => tag.id === activeTagId)?.name || "";
   };
+  
+  const filteredTasks = activeTagId
+    ? tasks.filter((task) => task.tag_id === activeTagId)
+    : tasks;
 
-  const handleTagManagerSave = () => {
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchTasks = async () => {
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error loading tasks:", error);
+        return;
+      }
+      setTasks(data || []);
+    };
+
+    fetchTasks();
+  }, [user]);
+
+  const saveTasksToSupabase = async (tasksToSave: Task[]) => {
+    if (!user) return;
+    const tasksArr = tasksToSave.map(task => ({
+      ...task,
+      user_id: user.id,
+    }));
+    const { error } = await supabase
+      .from("tasks")
+      .upsert(tasksArr, { onConflict: "id" });
+    if (error) {
+      console.error("Error saving tasks:", error);
+    }
+  };
+
+  const handleTaskAdd = async (text: string) => {
+    if (!user) return;
+    const newTask = {
+      text,
+      completed: false,
+      tag_id: activeTagId || null,
+      ordinal: tasks.length,
+      user_id: user.id,
+    };
+    // Insert the new task and get the inserted row (with id)
+    const { data, error } = await supabase
+      .from("tasks")
+      .insert([newTask])
+      .select(); // .select() returns the inserted row(s)
+    if (error) {
+      console.error("Error adding task:", error);
+      return;
+    }
+    if (data && data.length > 0) {
+      setTasks([...tasks, data[0]]);
+    }
+  };
+
+  const handleTaskUpdate = async (updatedTask: Task) => {
+    const updatedTasks = tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task));
+    setTasks(updatedTasks);
+    await saveTasksToSupabase(updatedTasks);
+  };
+
+  const handleTaskDelete = async (taskId: string) => {
+    const updatedTasks = tasks.filter((task) => task.id !== taskId);
+    setTasks(updatedTasks);
+    await supabase.from("tasks").delete().eq("id", taskId).eq("user_id", user.id);
+  };
+
+  const handleTaskReorder = async (reorderedTasks: Task[]) => {
+    setTasks(reorderedTasks);
+    await saveTasksToSupabase(reorderedTasks);
+  };
+  //================================================================================
+
+  //===================================TAGS=========================================
+  // #region Tags
+  //================================================================================
+  const [tags, setTags] = useState<Tag[]>([]);  
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchTags = async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error loading tags:", error);
+        return;
+      }
+      setTags(data || []);
+    };
+
+    fetchTags();
+  }, [user]);
+
+  const saveTagsToSupabase = async (tagsToSave: Tag[]) => {
+    if (!user) return;
+    const tagsArr = tagsToSave.map(tag => {
+      if (tag.id && tag.id.startsWith("temp-")) {
+        const { id, ...rest } = tag;
+        return { ...rest, user_id: user.id };
+      }
+      return { ...tag, user_id: user.id };
+    });
+    const { error } = await supabase
+      .from("tags")
+      .upsert(tagsArr, { onConflict: "id" });
+    if (error) {
+      console.error("Error saving tags:", error);
+    }
+  };  
+
+  const handleTagManagerSave = async () => {
     const updatedTags = tagManagerRef.current?.getTags?.();
-    if (updatedTags) {
+    if (updatedTags) 
+    {
       // Clean up references to deleted tags
       const updatedTagIds = new Set(updatedTags.map(tag => tag.id));
 
       const cleanedTasks = tasks.map(task =>
-        updatedTagIds.has(task.tagId ?? "") ? task : { ...task, tagId: null }
+        updatedTagIds.has(task.tag_id ?? "") ? task : { ...task, tagId: null }
       );
 
-      const cleanedNotes: Record<string, string> = {};
+      const cleanedNotes: NoteMap = {};
       updatedTags.forEach(tag => {
         if (notes[tag.id]) {
           cleanedNotes[tag.id] = notes[tag.id];
@@ -132,11 +189,78 @@ const Dashboard = () => {
       if (activeTagId && !updatedTagIds.has(activeTagId)) {
         setActiveTagId(null);
       }
+      console.log("Saving tags to Supabase:", updatedTags);
+      // Save to Supabase
+      await saveTagsToSupabase(updatedTags);
     }
 
     setShowTagManager(false);
   };
+  // #endregion
+  //================================================================================
 
+  //===================================NOTES========================================
+  // #region Notes
+  //================================================================================
+  type NoteMap = Record<string, { id: string; content: string }>;
+  const [notes, setNotes] = useState<NoteMap>({});
+
+  const [showTagManager, setShowTagManager] = useState(false);
+  
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchNotes = async () => {
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error loading notes:", error);
+        return;
+      }
+      // Convert array of notes to { [tagId]: content }
+      const notesObj: NoteMap = {};
+      (data || []).forEach((note: any) => {
+        notesObj[note.tag_id] = { id: note.id, content: note.content };
+      });
+      setNotes(notesObj);
+    };
+
+    fetchNotes();
+  }, [user]);
+
+  const saveNotesToSupabase = async (notesToSave: NoteMap) => {
+    if (!user) return;
+    const notesArr = Object.entries(notesToSave).map(([tag_id, note]) => ({
+      id: note.id,
+      tag_id,
+      content: note.content,
+      user_id: user.id,
+    }));
+    const { error } = await supabase
+      .from("notes")
+      .upsert(notesArr, { onConflict: "id" });
+    if (error) {
+      console.error("Error saving notes:", error);
+    }
+  };
+
+  const handleNoteChange = async (tagId: string | null, content: string) => {
+    if (tagId === null) return;
+    const prevNote = notes[tagId];
+    const updatedNotes = {
+      ...notes,
+      [tagId]: { id: prevNote?.id, content },
+    };
+    setNotes(updatedNotes);
+    await saveNotesToSupabase(updatedNotes);
+  };
+  // #endregion
+  //================================================================================
+
+  //================================================================================
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <div className="flex-1 max-w-7xl mx-auto px-6 py-4 w-full">
@@ -199,7 +323,7 @@ const Dashboard = () => {
             <div className="p-6 border-l h-full">
               {activeTagId !== null ? (
                 <NoteSpace
-                  note={notes[activeTagId] || ""}
+                  note={notes[activeTagId]?.content || ""}
                   onNoteChange={(content) =>
                     handleNoteChange(activeTagId, content)
                   }
@@ -221,7 +345,7 @@ const Dashboard = () => {
                         {tag.name}
                       </h3>
                       <NoteSpace
-                        note={notes[tag.id] || ""}
+                        note={notes[tag.id]?.content || ""}
                         onNoteChange={(content) => handleNoteChange(tag.id, content)}
                         tagName=""
                       />

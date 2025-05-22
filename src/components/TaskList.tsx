@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Task, Tag } from "@/types/task";
 import TaskItem from "./TaskItem";
 import { GripVertical } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
+type Task = Database["public"]["Tables"]["tasks"]["Row"];
+type Tag = Database["public"]["Tables"]["tags"]["Row"];
 
 interface TaskListProps {
   tasks: Task[];
@@ -56,7 +58,7 @@ const TaskList = ({
     newTasks.splice(insertIndex, 0, dragged);
 
     // Update order props
-    const reorderedTasks = newTasks.map((task, idx) => ({ ...task, order: idx }));
+    const reorderedTasks = newTasks.map((task, idx) => ({ ...task, ordinal: idx }));
     onReorderTasks(reorderedTasks);
     resetDragState();
   };
@@ -74,7 +76,7 @@ const TaskList = ({
     );
   }
 
-  const sortedTasks = [...tasks].sort((a, b) => a.order - b.order);
+  const sortedTasks = [...tasks].sort((a, b) => a.ordinal - b.ordinal);
 
   return (
     <div className="relative">

@@ -7,158 +7,124 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      profiles: {
+      notes: {
         Row: {
-          avatar_url: string | null
-          created_at: string
-          full_name: string | null
+          content: string | null
           id: string
-          username: string | null
+          tag_id: string | null
+          user_id: string
         }
         Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
+          content?: string | null
           id: string
-          username?: string | null
+          tag_id?: string | null
+          user_id: string
         }
         Update: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
+          content?: string | null
           id?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
-      subtasks: {
-        Row: {
-          completed: boolean
-          created_at: string
-          id: string
-          order: number
-          task_id: string
-          title: string
-        }
-        Insert: {
-          completed?: boolean
-          created_at?: string
-          id?: string
-          order?: number
-          task_id: string
-          title: string
-        }
-        Update: {
-          completed?: boolean
-          created_at?: string
-          id?: string
-          order?: number
-          task_id?: string
-          title?: string
+          tag_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "subtasks_task_id_fkey"
-            columns: ["task_id"]
+            foreignKeyName: "notes_tag_id_fkey"
+            columns: ["tag_id"]
             isOneToOne: false
-            referencedRelation: "tasks"
+            referencedRelation: "tags"
             referencedColumns: ["id"]
           },
         ]
       }
-      tasks: {
+      tags: {
         Row: {
-          created_at: string
-          description: string | null
-          id: string
-          list_id: string
-          notes: string | null
-          order: number
-          status: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          list_id: string
-          notes?: string | null
-          order?: number
-          status?: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          list_id?: string
-          notes?: string | null
-          order?: number
-          status?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tasks_list_id_fkey"
-            columns: ["list_id"]
-            isOneToOne: false
-            referencedRelation: "todo_lists"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      todo_lists: {
-        Row: {
-          created_at: string
+          color: string
           id: string
           name: string
-          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string
+          color: string
           id?: string
           name: string
-          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string
+          color?: string
           id?: string
           name?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed: boolean
+          id: string
+          ordinal: number | null
+          tag_id: string | null
+          text: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          id?: string
+          ordinal?: number | null
+          tag_id?: string | null
+          text: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          id?: string
+          ordinal?: number | null
+          tag_id?: string | null
+          text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_user_plate: {
-        Args: { user_id: string }
-        Returns: {
-          id: string
-          title: string
-          status: string
-          list_id: string
-          list_name: string
-          description: string
-          notes: string
-          order: number
-          created_at: string
-          updated_at: string
-          shared_by: string
-          shared_with: string
-          is_shared_ownership: boolean
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
@@ -275,6 +241,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

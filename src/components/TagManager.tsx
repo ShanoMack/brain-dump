@@ -1,5 +1,4 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
-import { Tag } from "@/types/task";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus, GripVertical, HelpCircle } from "lucide-react";
@@ -17,6 +16,8 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import type { Database } from "@/integrations/supabase/types";
+type Tag = Database["public"]["Tables"]["tags"]["Row"];
 
 const TAG_COLORS = [
   { value: "bg-red-400 text-red-900", label: "Red" },
@@ -48,27 +49,28 @@ export interface TagManagerHandle {
 }
 
 const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) => {
-  const [localTags, setLocalTags] = useState<Tag[]>(props.tags);
+
+  type LocalTag = Partial<Pick<Tag, "id" | "user_id">> & Pick<Tag, "name" | "color">;
+  const [localTags, setLocalTags] = useState<LocalTag[]>(props.tags);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0].value);
 
   const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  
+  useEffect(() => {
+    setLocalTags(props.tags);
+  }, [props.tags]);
 
   useImperativeHandle(ref, () => ({
-    getTags: () => {
-      const trimmedName = newTagName.trim();
-      if (trimmedName) {
-        const tagId = trimmedName.toLowerCase().replace(/\s+/g, "-");
-        const pendingTag: Tag = {
-          id: `${tagId}-${Date.now()}`,
-          name: trimmedName,
-          color: newTagColor,
-        };
-        return [...localTags, pendingTag];
-      }
-      return localTags;
-    },
+    getTags: () =>
+      localTags.filter(
+        (t): t is Tag =>
+          typeof t.id === "string" &&
+          typeof t.user_id === "string" &&
+          typeof t.name === "string" &&
+          typeof t.color === "string"
+      ),
   }));
 
   const reorderTags = () => {
@@ -99,12 +101,11 @@ const TagManager = forwardRef<TagManagerHandle, { tags: Tag[] }>((props, ref) =>
 
   const handleAddNewTag = () => {
     if (newTagName.trim()) {
-      const tagId = newTagName.toLowerCase().replace(/\s+/g, "-");
-      const newTag: Tag = {
-        id: `${tagId}-${Date.now()}`,
+      const newTag: LocalTag = {
+        id: `temp-${Date.now()}-${Math.random()}`,
         name: newTagName.trim(),
         color: newTagColor,
-      };
+      } as Omit<Tag, "id" | "user_id">; 
       setLocalTags((prev) => [...prev, newTag]);
       setNewTagName("");
       setNewTagColor(TAG_COLORS[0].value);
